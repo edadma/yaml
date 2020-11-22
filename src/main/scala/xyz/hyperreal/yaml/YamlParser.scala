@@ -11,6 +11,8 @@ object YamlParser extends Matchers[CharReader] {
   override implicit def str(s: String): Matcher[String] =
     whitespace ~> super.str(s) <~ whitespace
 
+  override def space = anyOf(' ', '\t')
+
   def s(s: String): Matcher[String] = super.str(s)
 
   val /*[1]*/ `c-printable`: Set[Char] = Set('\t', '\r', '\n') ++ (' ' to '~')
@@ -51,8 +53,8 @@ object YamlParser extends Matchers[CharReader] {
 
   def documentValue: Matcher[ValueAST] =
     pairs ^^ (p => MapAST(None, p)) |
-      listValues ^^ (l => ListAST(None, l)) //|
-//    flowValue /*|
+      listValues ^^ (l => ListAST(None, l)) |
+      flowValue /*|
 //  multiline */
 
   def flowPlainText: Matcher[String] = `ns-plain-one-line`
@@ -99,7 +101,7 @@ object YamlParser extends Matchers[CharReader] {
       value
 
   def value: Matcher[ValueAST] =
-    primitive | container | flowContainer //| multiline
+    flowContainer | container | primitive //| multiline
 
   def ornull(a: Option[ValueAST]): ValueAST =
     a match {
@@ -110,18 +112,18 @@ object YamlParser extends Matchers[CharReader] {
   def flowContainer: Matcher[ContainerAST] = flowMap | flowList
 
   def flowMap: Matcher[MapAST] =
-    opt(anchor) ~ ("{" ~> repsep(flowPair, ",") <~ "}") ^^ {
+    opt(anchor) ~ ('{' ~> repsep(flowPair, ',') <~ '}') ^^ {
       case a ~ l => MapAST(a, l)
     }
 
   def flowPair: Matcher[(ValueAST, ValueAST)] =
-    flowValue ~ opt(":" ~ opt(flowValue)) ^^ {
+    flowValue ~ opt(':' ~ opt(flowValue)) ^^ {
       case k ~ None        => (k, NullAST)
       case k ~ Some(_ ~ v) => (k, ornull(v))
     }
 
   def flowList: Matcher[ContainerAST] =
-    opt(anchor) ~ ("[" ~> repsep(opt(flowValue), ",") <~ "]") ^^ {
+    opt(anchor) ~ ('[' ~> repsep(opt(flowValue), ',') <~ ']') ^^ {
       case a ~ l => ListAST(a, l map ornull)
     }
 

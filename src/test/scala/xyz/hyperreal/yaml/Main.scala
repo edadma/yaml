@@ -6,10 +6,9 @@ object Main extends App {
 
   val s =
     """|- one
-       |- two
-       |
+       |- [1, 2, 3]
        |""".stripMargin
-//    "[1, 2, 3]"
+//    "[asdf, 2, 3]"
   val ast = YamlParser.parseFromString(s)
 
   println(prettyPrint(ast))
