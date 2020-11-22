@@ -1,4 +1,4 @@
-name := "_"
+name := "yaml"
 
 version := "0.1.0-snapshot.1"
 
@@ -55,6 +55,8 @@ libraryDependencies ++= {
 //}
 
 libraryDependencies ++= Seq(
+  "xyz.hyperreal" %% "pattern-matcher" % "0.3.7",
+  "xyz.hyperreal" %% "pretty" % "0.2" % "test"
 )
 
 coverageExcludedPackages := ".*Main"
