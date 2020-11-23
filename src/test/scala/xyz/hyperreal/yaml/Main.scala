@@ -8,25 +8,24 @@ object Main extends App {
     """|#
        |# extract all new car dealers from www.autobuyselldealers.com
        |#
-       |site: 'http://localhost:8080'
+       |start: 'http://localhost:8080/'
        |folder: www.autobuyselldealers.com
-       |states:
-       |  initial:
-       |    entry: |
-       |      write( 'initial state' )
-       |    goto: main
-       |  main:
-       |    entry: |
-       |      write( 'main state' )
-       |    paths:
-       |      /listings/dealerships/auto-dealerships-new/*:
-       |        #traverse:
-       |        code: |
-       |          write( path, file )
-       |  final:
-       |    entry: |
-       |      write( 'final state' )
+       |init: |
+       |  write( 'initial state' )
+       |paths:
+       |  - path: /listings/dealerships/auto-dealerships-new/*
+       |    key: dealer-page
+       |    from: [start, dealer-page]
+       |    crawl:
+       |    process: |
+       |      write( path, file )
+       |final: |
+       |  write( 'final state' )
     """.trim.stripMargin
+//    """|- - a: asdf
+//       |    b: sdfg
+//       |  - bnm
+//    """.trim.stripMargin
 //    """|a:
 //       | b:
 //       |  - 1

@@ -21,6 +21,8 @@ object YamlParser extends Matchers[CharReader] {
 
   def s(s: String): Matcher[String] = super.str(s)
 
+  implicit def set(pred: Char => Boolean): Matcher[Char] = elem(pred)
+
   val /*[1]*/ `c-printable`: Set[Char] = Set('\t', '\r', '\n') ++ (' ' to '~')
 
   val /*[3]*/ `c-byte-order-mark` = '\uFEFF'
@@ -45,9 +47,9 @@ object YamlParser extends Matchers[CharReader] {
   def /*[130]*/ `ns-plain-char`: Matcher[Char] = elem(`ns-plain-safe-in` - ':' - '#') // todo: incomplete
 
   def /*[132]*/ `nb-ns-plain-in-line`: Matcher[List[List[Char] ~ Char]] =
-    (elem(`s-white`).* ~ `ns-plain-char`) *
+    (`s-white`.* ~ `ns-plain-char`) *
 
-  def /*[133]*/ `ns-plain-one-line`: Matcher[String] = string(elem(`ns-plain-first`) ~ `nb-ns-plain-in-line`)
+  def /*[133]*/ `ns-plain-one-line`: Matcher[String] = string(`ns-plain-first` ~ `nb-ns-plain-in-line`)
 
   def anchor: Matcher[String] = '&' ~> string(rep1(letterOrDigit))
 
@@ -61,11 +63,9 @@ object YamlParser extends Matchers[CharReader] {
 
   def documentValue: Matcher[ValueAST] =
     blockPairs ^^ (p => MapAST(None, None, p)) |
-      blockListValues ^^ (l => SeqAST(None, None, l)) |
+      blockListElements ^^ (l => SeqAST(None, None, l)) |
       flowValue |
       multiline
-
-  def flowPlainText: Matcher[String] = `ns-plain-one-line`
 
   def blockContainer: Matcher[ContainerAST] = blockMap | blockList
 
@@ -94,22 +94,27 @@ object YamlParser extends Matchers[CharReader] {
 //      "?" ~> value
 
   def blockList: Matcher[SeqAST] =
-    opt(anchor) ~ opt(tag) ~ (nl ~> INDENT ~> blockListValues <~ DEDENT) ^^ {
+    opt(anchor) ~ opt(tag) ~ (nl ~> INDENT ~> blockListElements <~ DEDENT) ^^ {
       case a ~ t ~ p => SeqAST(a, t, p)
     }
 
-  def blockListValues: Matcher[List[ValueAST]] =
-    rep1("- " ~> blockListValue)
+  // todo: 184 incomplete
+  def /*[184]*/ blockListElements: Matcher[List[ValueAST]] = rep1(blockListElement)
+
+  def blockListElement: YamlParser.Matcher[ValueAST] = '-' ~> not(`ns-char`) ~> whitespace ~> blockListValue
 
   def blockListValue: Matcher[ValueAST] =
-//    pair ~ (INDENT ~> pairs <~ DEDENT) ^^ {
-//      case p ~ ps => MapAST(None, p :: ps)
-//    } |
-//      pair ^^ (p => MapAST(None, List(p))) |
-    blockValue
+    blockListElement ~ (INDENT ~> blockListElements <~ DEDENT) ^^ {
+      case p ~ ps => SeqAST(None, None, p :: ps)
+    } |
+      blockListElement ^^ (p => SeqAST(None, None, List(p))) |
+      blockPair ~ (INDENT ~> blockPairs <~ DEDENT) ^^ {
+        case p ~ ps => MapAST(None, None, p :: ps)
+      } |
+      blockPair ^^ (p => MapAST(None, None, List(p))) |
+      blockValue
 
-  def blockValue: Matcher[ValueAST] =
-    blockContainer | optNull(flowValue) <~ nl | multiline
+  def blockValue: Matcher[ValueAST] = blockContainer | optNull(flowValue) <~ nl | multiline
 
   // todo: 173 incomplete
   def /*[173]*/ `l-literal-content`: Matcher[String] = string(elem(`nb-char`) *)
@@ -152,6 +157,8 @@ object YamlParser extends Matchers[CharReader] {
   def optNull[T <: ValueAST](m: Matcher[T]): Matcher[ValueAST] = opt(m) ^^ orNull
 
   def flowValue: Matcher[ValueAST] = flowContainer | primitive
+
+  def flowPlainText: Matcher[String] = `ns-plain-one-line`
 
   def primitive: Matcher[ValueAST] =
     opt(anchor) ~ opt(tag) ~ (singleStringLit ^^ (s => ('s', s)) | doubleStringLit ^^ (s => ('d', s)) | flowPlainText ^^ (

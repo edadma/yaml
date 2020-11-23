@@ -47,9 +47,20 @@ case object IntYamlTag extends ScalarYamlTag("int") {
   def construct(node: ScalarYamlNode): Int = node.scalar.toInt
 }
 
+case object NullYamlTag extends ScalarYamlTag("null") {
+  type Native = Null
+
+  def construct(node: ScalarYamlNode): Null =
+    if (node.scalar != "" && node.scalar != "null")
+      sys.error(s"invalid !!null tag value representation: ${node.scalar}")
+    else null
+}
+
 case class ScalarYamlNode(tag: ScalarYamlTag, scalar: String) extends YamlNode
 
 case class StringYamlNode(scalar: String) extends YamlNode { val tag: StringYamlTag.type = StringYamlTag }
+
+case object NullYamlNode extends YamlNode { val tag: NullYamlTag.type = NullYamlTag }
 
 case object SeqYamlTag extends YamlTag("seq") {
   type RepNode = SeqYamlNode
