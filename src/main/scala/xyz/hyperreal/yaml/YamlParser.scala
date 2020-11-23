@@ -51,7 +51,7 @@ object YamlParser extends Matchers[CharReader] {
 
   def anchor: Matcher[String] = '&' ~> string(rep1(letterOrDigit))
 
-  def input: Matcher[ValueAST] = matchall(documentValue)
+  def input: Matcher[ValueAST] = matchall(repu(nl) ~> documentValue)
 
   def nl: Matcher[_] = whitespace ~ (eoi | guard(DEDENT) | rep1('\n'))
 
