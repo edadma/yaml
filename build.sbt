@@ -55,7 +55,7 @@ libraryDependencies ++= {
 //}
 
 libraryDependencies ++= Seq(
-  "xyz.hyperreal" %% "pattern-matcher" % "0.3.8",
+  "xyz.hyperreal" %% "pattern-matcher" % "0.3.10",
   "xyz.hyperreal" %% "pretty" % "0.2" % "test"
 )
 

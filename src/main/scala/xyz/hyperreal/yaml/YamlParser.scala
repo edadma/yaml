@@ -11,7 +11,7 @@ object YamlParser extends Matchers[CharReader] {
   override implicit def str(s: String): Matcher[String] =
     whitespace ~> super.str(s) <~ whitespace
 
-  override def space = anyOf(' ', '\t')
+  override def space: Matcher[Char] = anyOf(' ', '\t')
 
   def s(s: String): Matcher[String] = super.str(s)
 
@@ -36,46 +36,43 @@ object YamlParser extends Matchers[CharReader] {
 
   val /*[129]*/ `ns-plain-safe-in`: Set[Char] = `ns-char` -- `c-flow-indicator`
 
-  def /*[130]*/ `ns-plain-char`: YamlParser.Matcher[Char] = elem(`ns-plain-safe-in` - ':' - '#') // todo: incomplete
+  def /*[130]*/ `ns-plain-char`: Matcher[Char] = elem(`ns-plain-safe-in` - ':' - '#') // todo: incomplete
 
-  def /*[132]*/ `nb-ns-plain-in-line`: YamlParser.Matcher[List[List[Char] ~ Char]] =
+  def /*[132]*/ `nb-ns-plain-in-line`: Matcher[List[List[Char] ~ Char]] =
     (elem(`s-white`).* ~ `ns-plain-char`) *
 
-  def /*[133]*/ `ns-plain-one-line`: YamlParser.Matcher[String] = string(elem(`ns-plain-first`) ~ `nb-ns-plain-in-line`)
+  def /*[133]*/ `ns-plain-one-line`: Matcher[String] = string(elem(`ns-plain-first`) ~ `nb-ns-plain-in-line`)
 
   def anchor: Matcher[String] = '&' ~> string(rep1(letterOrDigit))
 
   def input: Matcher[ValueAST] = matchall(documentValue)
 
-  def nl: Matcher[_] = rep1('\n')
+  def nl: Matcher[_] = eoi | guard(DEDENT) | rep1('\n')
 
   def onl: Matcher[_] = rep('\n')
 
-  def documentValue: Matcher[ValueAST] = tap("documentValue") {
-    blockPairs ^^ (p => MapAST(None, p)) /* |
+  def documentValue: Matcher[ValueAST] =
+    blockPairs ^^ (p => MapAST(None, p)) |
       blockListValues ^^ (l => ListAST(None, l)) |
-      flowValue*/
-    /*|
-//  multiline */
-  }
+      flowValue |
+      multiline
 
   def flowPlainText: Matcher[String] = `ns-plain-one-line`
 
   def blockContainer: Matcher[ContainerAST] = blockMap | blockList
 
-  def blockMap: Matcher[MapAST] = tap("blockMap") {
-    opt(anchor) ~ (INDENT ~> blockPairs <~ DEDENT) ^^ {
+  def blockMap: Matcher[MapAST] =
+    opt(anchor) ~ (nl ~> INDENT ~> blockPairs <~ DEDENT) ^^ {
       case a ~ p => MapAST(a, p)
     }
-  }
 
-  def blockPairs: Matcher[List[(ValueAST, ValueAST)]] = tap("blockPairs") { rep1(blockPair) }
+  def blockPairs: Matcher[List[(ValueAST, ValueAST)]] = rep1(blockPair)
 
-  def blockPair: Matcher[(ValueAST, ValueAST)] = tap("blockPair") {
-    flowValue ~ ":" ~ optNull(blockValue) ^^ {
+  def blockPair: Matcher[(ValueAST, ValueAST)] =
+    flowValue ~ ":" ~ blockValue ^^ {
       case k ~ _ ~ v => (k, v)
     }
-  } /*|
+  /*|
       complexKey ~ opt(nl ~ ":" ~ opt(value)) ^^ {
         case k ~ (None | Some(_ ~ _ ~ None)) => (k, NullAST)
         case k ~ Some(_ ~ _ ~ Some(v))       => (k, v)
@@ -94,7 +91,7 @@ object YamlParser extends Matchers[CharReader] {
     }
 
   def blockListValues: Matcher[List[ValueAST]] =
-    rep1("-" ~> blockListValue)
+    rep1("- " ~> blockListValue)
 
   def blockListValue: Matcher[ValueAST] =
 //    pair ~ (INDENT ~> pairs <~ DEDENT) ^^ {
@@ -103,9 +100,27 @@ object YamlParser extends Matchers[CharReader] {
 //      pair ^^ (p => MapAST(None, List(p))) |
     blockValue
 
-  def blockValue: Matcher[ValueAST] = tap("blockValue") {
-    blockContainer | optNull(flowValue) <~ nl //| multiline
+  def blockValue: Matcher[ValueAST] =
+    blockContainer | optNull(flowValue) <~ nl | multiline
+
+  // todo: 173 incomplete
+  def /*[173]*/ `l-literal-content`: Matcher[String] = string(elem(`nb-char`) *)
+
+  def affectReader(affect: CharReader => Unit): Matcher[Unit] = { in =>
+    affect(in)
+    Match((), in)
   }
+
+  def multiline: Matcher[ValueAST] =
+    opt(anchor) ~ ("|" | "|-") ~ (nl ~> INDENT ~> affectReader(r => r.textUntilDedent()) ~> rep1(
+      guard(not(DEDENT)) ~> `l-literal-content` <~ nl) <~ DEDENT) ^^ {
+      case a ~ "|" ~ l  => StringAST(a, l.mkString("", "\n", "\n"))
+      case a ~ "|-" ~ l => StringAST(a, l mkString "\n")
+    } /*|
+      opt(anchor) ~ opt(">" | ">-") ~ (INDENT ~> rep1(textLit <~ nl) <~ DEDENT) ^^ {
+        case a ~ Some(">") ~ l => StringAST(a, l mkString ("", " ", "\n"))
+        case a ~ _ ~ l         => StringAST(a, l mkString " ")
+      }*/
 
   def orNull(a: Option[ValueAST]): ValueAST =
     a match {

@@ -5,9 +5,18 @@ import xyz.hyperreal.pretty.prettyPrint
 object Main extends App {
 
   val s =
-    """|a:
-       | b: 1
-       |""".stripMargin
+    """|a: |
+       | asdf
+       |  zxcv
+       |b: qwer
+    """.trim.stripMargin
+//    """|a:
+//       | b:
+//       |  - 1
+//       |  -
+//       |   c:
+//       |   d: 2
+//       |""".stripMargin
 //    """|-
 //       | - 1
 //       | -
