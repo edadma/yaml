@@ -13,6 +13,12 @@ object YamlParser extends Matchers[CharReader] {
 
   override def space: Matcher[Char] = anyOf(' ', '\t')
 
+  override def lineComment: Matcher[_] = '#'
+
+  override def blockCommentStart: Matcher[_] = not(pos)
+
+  override def blockCommentEnd: Matcher[_] = not(pos)
+
   def s(s: String): Matcher[String] = super.str(s)
 
   val /*[1]*/ `c-printable`: Set[Char] = Set('\t', '\r', '\n') ++ (' ' to '~')
@@ -47,9 +53,9 @@ object YamlParser extends Matchers[CharReader] {
 
   def input: Matcher[ValueAST] = matchall(documentValue)
 
-  def nl: Matcher[_] = eoi | guard(DEDENT) | rep1('\n')
+  def nl: Matcher[_] = whitespace ~ (eoi | guard(DEDENT) | rep1('\n'))
 
-  def onl: Matcher[_] = rep('\n')
+  def nl1: Matcher[_] = eoi | guard(DEDENT) | '\n'
 
   def documentValue: Matcher[ValueAST] =
     blockPairs ^^ (p => MapAST(None, p)) |
@@ -106,14 +112,9 @@ object YamlParser extends Matchers[CharReader] {
   // todo: 173 incomplete
   def /*[173]*/ `l-literal-content`: Matcher[String] = string(elem(`nb-char`) *)
 
-  def affectReader(affect: CharReader => Unit): Matcher[Unit] = { in =>
-    affect(in)
-    Match((), in)
-  }
-
   def multiline: Matcher[ValueAST] =
-    opt(anchor) ~ ("|" | "|-") ~ (nl ~> INDENT ~> affectReader(r => r.textUntilDedent()) ~> rep1(
-      guard(not(DEDENT)) ~> `l-literal-content` <~ nl) <~ DEDENT) ^^ {
+    opt(anchor) ~ ("|" | "|-") ~ (nl ~> INDENT ~> affect(_.textUntilDedent()) ~> rep1(
+      not(DEDENT) ~> `l-literal-content` <~ nl1) <~ DEDENT) ^^ {
       case a ~ "|" ~ l  => StringAST(a, l.mkString("", "\n", "\n"))
       case a ~ "|-" ~ l => StringAST(a, l mkString "\n")
     } /*|
@@ -131,18 +132,18 @@ object YamlParser extends Matchers[CharReader] {
   def flowContainer: Matcher[ContainerAST] = flowMap | flowList
 
   def flowMap: Matcher[MapAST] =
-    opt(anchor) ~ ('{' ~> repsep(flowPair, ',') <~ '}') ^^ {
+    opt(anchor) ~ ('{' ~> repsep(flowPair, ",") <~ '}') ^^ {
       case a ~ l => MapAST(a, l)
     }
 
   def flowPair: Matcher[(ValueAST, ValueAST)] =
-    flowValue ~ opt(':' ~> optNull(flowValue)) ^^ {
+    flowValue ~ opt(":" ~> optNull(flowValue)) ^^ {
       case k ~ None    => (k, NullAST)
       case k ~ Some(v) => (k, v)
     }
 
   def flowList: Matcher[ContainerAST] =
-    opt(anchor) ~ ('[' ~> repsep(optNull(flowValue), ',') <~ ']') ^^ {
+    opt(anchor) ~ ('[' ~> repsep(optNull(flowValue), ",") <~ ']') ^^ {
       case a ~ l => ListAST(a, l)
     }
 
