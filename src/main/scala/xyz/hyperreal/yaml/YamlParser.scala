@@ -163,7 +163,10 @@ object YamlParser extends Matchers[CharReader] {
       opt(anchor) ~ flowPlainText ^^ { case a ~ s => StringAST(a, s) }
 
   def parseFromString(s: String): ValueAST =
-    input(CharReader.fromString(s, indentation = Some((Some("#"), None)))) match {
+    parseFromCharReader(CharReader.fromString(s, indentation = Some((Some("#"), None))))
+
+  def parseFromCharReader(r: CharReader): ValueAST =
+    input(r) match {
       case Match(result, _) => result
       case m: Mismatch      => m.error
     }

@@ -41,7 +41,7 @@ object Main extends App {
 //       |- zxcv
 //       |""".stripMargin
 //    "[asdf, 2, 3]"
-  val ast = YamlParser.parseFromString(s)
+  val ast = readFromString(s)
 
   println(prettyPrint(ast))
 
