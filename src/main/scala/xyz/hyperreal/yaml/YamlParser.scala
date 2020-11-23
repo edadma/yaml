@@ -154,9 +154,12 @@ object YamlParser extends Matchers[CharReader] {
   def flowValue: Matcher[ValueAST] = flowContainer | primitive
 
   def primitive: Matcher[ValueAST] =
-    opt(anchor) ~ opt(tag) ~ singleStringLit ^^ { case a ~ t ~ s   => SingleQuotedAST(a, t, s) } |
-      opt(anchor) ~ opt(tag) ~ doubleStringLit ^^ { case a ~ t ~ s => DoubleQuotedAST(a, t, s) } |
-      opt(anchor) ~ opt(tag) ~ flowPlainText ^^ { case a ~ t ~ s   => PlainAST(a, t, s) }
+    opt(anchor) ~ opt(tag) ~ (singleStringLit ^^ (s => ('s', s)) | doubleStringLit ^^ (s => ('d', s)) | flowPlainText ^^ (
+        s => ('p', s))) ^^ {
+      case a ~ t ~ (('s', s)) => SingleQuotedAST(a, t, s)
+      case a ~ t ~ (('d', s)) => DoubleQuotedAST(a, t, s)
+      case a ~ t ~ (('p', s)) => PlainAST(a, t, s)
+    }
 
   def parseFromString(s: String): ValueAST =
     parseFromCharReader(CharReader.fromString(s, indentation = Some((Some("#"), None))))

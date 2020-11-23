@@ -32,8 +32,7 @@ class Representation {
 //          case None    => problem(pos, s"anchor not found: $name")
 //          case Some(v) => v
 //        }
-      case PlainAST(anchor, tag, s) =>
-        scalarNode(anchor, tag, s)
+      case PlainAST(anchor, tag, s) => scalarNode(anchor, tag, s)
       case SingleQuotedAST(anchor, tag, s) =>
         scalarNode(anchor, tag, s)
       case DoubleQuotedAST(anchor, tag, s) =>
