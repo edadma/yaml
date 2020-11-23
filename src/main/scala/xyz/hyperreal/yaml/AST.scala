@@ -20,7 +20,7 @@ case class BooleanAST(anchor: Option[String], v: Boolean) extends PrimitiveAST
 case class StringAST(anchor: Option[String], v: String) extends PrimitiveAST
 case class NumberAST(anchor: Option[String], v: Number) extends PrimitiveAST
 //case class NullAST(anchor: Option[String]) extends PrimitiveAST { val v: Null = null }
-object NullAST extends PrimitiveAST { val anchor: Option[String] = None; val v: Null = null }
+case object NullAST extends PrimitiveAST { val anchor: Option[String] = None; val v: Null = null }
 case class DateAST(anchor: Option[String], v: LocalDate) extends PrimitiveAST
 case class TimestampAST(anchor: Option[String], v: ZonedDateTime) extends PrimitiveAST
 case class TimeAST(anchor: Option[String], v: LocalTime) extends PrimitiveAST

@@ -51,59 +51,63 @@ object YamlParser extends Matchers[CharReader] {
 
   def onl: Matcher[_] = rep('\n')
 
-  def documentValue: Matcher[ValueAST] =
-    pairs ^^ (p => MapAST(None, p)) |
-      listValues ^^ (l => ListAST(None, l)) |
-      flowValue /*|
+  def documentValue: Matcher[ValueAST] = tap("documentValue") {
+    blockPairs ^^ (p => MapAST(None, p)) /* |
+      blockListValues ^^ (l => ListAST(None, l)) |
+      flowValue*/
+    /*|
 //  multiline */
+  }
 
   def flowPlainText: Matcher[String] = `ns-plain-one-line`
 
-  def container: Matcher[ContainerAST] = map | list
+  def blockContainer: Matcher[ContainerAST] = blockMap | blockList
 
-  def map: Matcher[MapAST] =
-    opt(anchor) ~ (INDENT ~> pairs <~ DEDENT) ^^ {
+  def blockMap: Matcher[MapAST] = tap("blockMap") {
+    opt(anchor) ~ (INDENT ~> blockPairs <~ DEDENT) ^^ {
       case a ~ p => MapAST(a, p)
     }
+  }
 
-  def pairs: Matcher[List[(ValueAST, ValueAST)]] =
-    rep1(pair <~ nl)
+  def blockPairs: Matcher[List[(ValueAST, ValueAST)]] = tap("blockPairs") { rep1(blockPair) }
 
-  def pair: Matcher[(ValueAST, ValueAST)] =
-    flowValue ~ ":" ~ opt(value) ^^ {
-      case k ~ _ ~ v => (k, ornull(v))
-    } |
+  def blockPair: Matcher[(ValueAST, ValueAST)] = tap("blockPair") {
+    flowValue ~ ":" ~ optNull(blockValue) ^^ {
+      case k ~ _ ~ v => (k, v)
+    }
+  } /*|
       complexKey ~ opt(nl ~ ":" ~ opt(value)) ^^ {
         case k ~ (None | Some(_ ~ _ ~ None)) => (k, NullAST)
         case k ~ Some(_ ~ _ ~ Some(v))       => (k, v)
-      }
+      }*/
 
-  def complexKey: Matcher[ValueAST] =
-    "?" ~> "-" ~> opt(listValue) ~ opt(INDENT ~> listValues <~ DEDENT) ^^ {
-      case v ~ None     => ListAST(None, List(ornull(v)))
-      case v ~ Some(vs) => ListAST(None, ornull(v) :: vs)
-    } |
-      "?" ~> value
+//  def complexKey: Matcher[ValueAST] =
+//    "?" ~> "-" ~> opt(listValue) ~ opt(INDENT ~> listValues <~ DEDENT) ^^ {
+//      case v ~ None     => ListAST(None, List(ornull(v)))
+//      case v ~ Some(vs) => ListAST(None, ornull(v) :: vs)
+//    } |
+//      "?" ~> value
 
-  def list: Matcher[ListAST] =
-    opt(anchor) ~ (INDENT ~> listValues <~ DEDENT) ^^ {
+  def blockList: Matcher[ListAST] =
+    opt(anchor) ~ (nl ~> INDENT ~> blockListValues <~ DEDENT) ^^ {
       case a ~ p => ListAST(a, p)
     }
 
-  def listValues: Matcher[List[ValueAST]] =
-    rep1("-" ~> opt(listValue) <~ nl) ^^ (l => l map ornull)
+  def blockListValues: Matcher[List[ValueAST]] =
+    rep1("-" ~> blockListValue)
 
-  def listValue: Matcher[ValueAST] =
-    pair ~ (INDENT ~> pairs <~ DEDENT) ^^ {
-      case p ~ ps => MapAST(None, p :: ps)
-    } |
-      pair ^^ (p => MapAST(None, List(p))) |
-      value
+  def blockListValue: Matcher[ValueAST] =
+//    pair ~ (INDENT ~> pairs <~ DEDENT) ^^ {
+//      case p ~ ps => MapAST(None, p :: ps)
+//    } |
+//      pair ^^ (p => MapAST(None, List(p))) |
+    blockValue
 
-  def value: Matcher[ValueAST] =
-    flowContainer | container | primitive //| multiline
+  def blockValue: Matcher[ValueAST] = tap("blockValue") {
+    blockContainer | optNull(flowValue) <~ nl //| multiline
+  }
 
-  def ornull(a: Option[ValueAST]): ValueAST =
+  def orNull(a: Option[ValueAST]): ValueAST =
     a match {
       case None    => NullAST
       case Some(v) => v
@@ -117,17 +121,19 @@ object YamlParser extends Matchers[CharReader] {
     }
 
   def flowPair: Matcher[(ValueAST, ValueAST)] =
-    flowValue ~ opt(':' ~ opt(flowValue)) ^^ {
-      case k ~ None        => (k, NullAST)
-      case k ~ Some(_ ~ v) => (k, ornull(v))
+    flowValue ~ opt(':' ~> optNull(flowValue)) ^^ {
+      case k ~ None    => (k, NullAST)
+      case k ~ Some(v) => (k, v)
     }
 
   def flowList: Matcher[ContainerAST] =
-    opt(anchor) ~ ('[' ~> repsep(opt(flowValue), ',') <~ ']') ^^ {
-      case a ~ l => ListAST(a, l map ornull)
+    opt(anchor) ~ ('[' ~> repsep(optNull(flowValue), ',') <~ ']') ^^ {
+      case a ~ l => ListAST(a, l)
     }
 
-  def flowValue: Matcher[ValueAST] = primitive | flowContainer
+  def optNull[T <: ValueAST](m: Matcher[T]): Matcher[ValueAST] = opt(m) ^^ orNull
+
+  def flowValue: Matcher[ValueAST] = flowContainer | primitive
 
   def primitive: Matcher[PrimitiveAST] =
     opt(anchor) ~ (singleStringLit | doubleStringLit) ^^ { case a ~ s => StringAST(a, s) } |

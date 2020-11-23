@@ -5,9 +5,15 @@ import xyz.hyperreal.pretty.prettyPrint
 object Main extends App {
 
   val s =
-    """|- one
-       |- [1, 2, 3]
+    """|a:
+       | b: 1
        |""".stripMargin
+//    """|-
+//       | - 1
+//       | -
+//       |  - asdf
+//       |- zxcv
+//       |""".stripMargin
 //    "[asdf, 2, 3]"
   val ast = YamlParser.parseFromString(s)
 
