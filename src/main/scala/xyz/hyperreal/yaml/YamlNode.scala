@@ -18,6 +18,12 @@ abstract class YamlNode {
   def map: Map[String, YamlNode] = asInstanceOf[MapYamlNode].entries map { case (k, v) => k.string -> v } toMap
 
   def string: String = asInstanceOf[StringYamlNode].construct
+
+  def getString(key: String): String = map(key).string
+
+  def getStringOption(key: String): Option[String] = map get key map (_.string)
+
+  def contains(key: String): Boolean = map contains key
 }
 
 abstract class YamlTag(val name: String) {
