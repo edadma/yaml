@@ -1,6 +1,6 @@
 package xyz.hyperreal.yaml
 
-abstract class YamlNode {
+abstract class YamlNode extends Dynamic {
   val tag: YamlTag
 
   def construct: tag.Native = tag.construct(this.asInstanceOf[tag.RepNode])
@@ -18,6 +18,8 @@ abstract class YamlNode {
   def map: Map[String, YamlNode] = asInstanceOf[MapYamlNode].entries map { case (k, v) => k.string -> v } toMap
 
   def string: String = asInstanceOf[StringYamlNode].construct
+
+  def selectDynamic(field: String): String = getString(field)
 
   def getString(key: String): String = map(key).string
 
