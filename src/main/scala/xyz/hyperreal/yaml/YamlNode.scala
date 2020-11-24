@@ -19,11 +19,19 @@ abstract class YamlNode extends Dynamic {
 
   def string: String = asInstanceOf[StringYamlNode].construct
 
+  def boolean = asInstanceOf[BooleanYamlNode].construct
+
   def selectDynamic(field: String): String = getString(field)
+
+  def apply(key: String): Any = map(key).construct
 
   def getString(key: String): String = map(key).string
 
   def getStringOption(key: String): Option[String] = map get key map (_.string)
+
+  def getSeq(key: String): Seq[YamlNode] = map(key).seq
+
+  def getBoolean(key: String): String = map(key).boolean
 
   def contains(key: String): Boolean = map contains key
 }
@@ -64,11 +72,24 @@ case object NullYamlTag extends ScalarYamlTag("null") {
     else null
 }
 
-case class ScalarYamlNode(tag: ScalarYamlTag, scalar: String) extends YamlNode
+case object BooleanYamlTag extends ScalarYamlTag("bool") {
+  type Native = Boolean
 
-case class StringYamlNode(scalar: String) extends YamlNode { val tag: StringYamlTag.type = StringYamlTag }
+  def construct(node: ScalarYamlNode): Boolean =
+    node.scalar match {
+      case "true"  => true
+      case "false" => false
+      case s       => sys.error(s"invalid !!bool tag value representation: $s")
+    }
+}
 
-case object NullYamlNode extends YamlNode { val tag: NullYamlTag.type = NullYamlTag }
+abstract class ScalarYamlNode(val tag: ScalarYamlTag) extends YamlNode { val scalar: String }
+
+case class StringYamlNode(scalar: String) extends ScalarYamlNode(StringYamlTag)
+
+case object NullYamlNode extends ScalarYamlNode(NullYamlTag) { val scalar: String = "null" }
+
+case class BooleanYamlNode(scalar: String) extends YamlNode { val tag: BooleanYamlTag.type = BooleanYamlTag }
 
 case object SeqYamlTag extends YamlTag("seq") {
   type RepNode = SeqYamlNode

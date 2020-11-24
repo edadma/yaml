@@ -12,11 +12,16 @@ class Representation {
     anchors.clear()
   }
 
-  def scalarNode(anchor: Option[String], tag: Option[String], s: String): YamlNode = {
+  def scalarNode(anchor: Option[String], tag: Option[String], s: String, stringUnlessTag: Boolean): YamlNode = {
     if (anchor isDefined)
       anchors(anchor.get) = s
 
-    StringYamlNode(s)
+    if (stringUnlessTag)
+      StringYamlNode(s)
+    else
+    s match {
+
+    }
   }
 
   def compose(ast: AST): YamlNode =
@@ -32,12 +37,10 @@ class Representation {
 //          case None    => problem(pos, s"anchor not found: $name")
 //          case Some(v) => v
 //        }
-      case EmptyAST                 => NullYamlNode
-      case PlainAST(anchor, tag, s) => scalarNode(anchor, tag, s)
-      case SingleQuotedAST(anchor, tag, s) =>
-        scalarNode(anchor, tag, s)
-      case DoubleQuotedAST(anchor, tag, s) =>
-        scalarNode(anchor, tag, s)
+      case EmptyAST                        => NullYamlNode
+      case PlainAST(anchor, tag, s)        => scalarNode(anchor, tag, s, stringUnlessTag = false)
+      case SingleQuotedAST(anchor, tag, s) => scalarNode(anchor, tag, s, stringUnlessTag = true)
+      case DoubleQuotedAST(anchor, tag, s) => scalarNode(anchor, tag, s, stringUnlessTag = true)
       case MapAST(anchor, tag, pairs) =>
         val map = MapYamlNode(pairs map { case (k, v) => (compose(k), compose(v)) })
 
