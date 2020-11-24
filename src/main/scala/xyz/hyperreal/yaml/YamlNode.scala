@@ -3,7 +3,7 @@ package xyz.hyperreal.yaml
 abstract class YamlNode extends Dynamic {
   val tag: YamlTag
 
-  def construct: tag.Native = tag.construct(this.asInstanceOf[tag.RepNode])
+  def construct: tag.Native = tag.construct(asInstanceOf[tag.Rep])
 
   //
 
@@ -17,9 +17,9 @@ abstract class YamlNode extends Dynamic {
 
   def map: Map[String, YamlNode] = asInstanceOf[MapYamlNode].entries map { case (k, v) => k.string -> v } toMap
 
-  def string: String = asInstanceOf[StringYamlNode].construct
+  def string: String = asInstanceOf[StringYamlNode].scalar
 
-  def boolean = asInstanceOf[BooleanYamlNode].construct
+  def boolean: Boolean = asInstanceOf[BooleanYamlNode].construct.asInstanceOf[Boolean]
 
   def selectDynamic(field: String): String = getString(field)
 
@@ -31,19 +31,19 @@ abstract class YamlNode extends Dynamic {
 
   def getSeq(key: String): Seq[YamlNode] = map(key).seq
 
-  def getBoolean(key: String): String = map(key).boolean
+  def getBoolean(key: String): Boolean = map(key).boolean
 
   def contains(key: String): Boolean = map contains key
 }
 
 abstract class YamlTag(val name: String) {
-  type RepNode <: YamlNode
+  type Rep <: YamlNode
   type Native
 
-  def construct(node: RepNode): Native
+  def construct(node: Rep): Native
 }
 
-abstract class ScalarYamlTag(name: String) extends YamlTag(name) { type RepNode = ScalarYamlNode }
+abstract class ScalarYamlTag(name: String) extends YamlTag(name) { type Rep = ScalarYamlNode }
 
 case object StringYamlTag extends ScalarYamlTag("str") {
   type Native = String
@@ -89,10 +89,12 @@ case class StringYamlNode(scalar: String) extends ScalarYamlNode(StringYamlTag)
 
 case object NullYamlNode extends ScalarYamlNode(NullYamlTag) { val scalar: String = "null" }
 
-case class BooleanYamlNode(scalar: String) extends YamlNode { val tag: BooleanYamlTag.type = BooleanYamlTag }
+case class BooleanYamlNode(scalar: String) extends ScalarYamlNode(BooleanYamlTag)
+
+case class IntYamlNode(scalar: String) extends ScalarYamlNode(IntYamlTag)
 
 case object SeqYamlTag extends YamlTag("seq") {
-  type RepNode = SeqYamlNode
+  type Rep = SeqYamlNode
   type Native = List[_]
 
   def construct(node: SeqYamlNode): Native = node.elems map (_.construct)
@@ -103,7 +105,7 @@ case class SeqYamlNode(elems: List[YamlNode]) extends YamlNode {
 }
 
 case object MapYamlTag extends YamlTag("map") {
-  type RepNode = MapYamlNode
+  type Rep = MapYamlNode
   type Native = Map[_, _]
 
   def construct(node: MapYamlNode): Native = node.entries map { case (k, v) => (k.construct, v.construct) } toMap

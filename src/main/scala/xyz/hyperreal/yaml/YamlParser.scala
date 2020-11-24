@@ -122,8 +122,8 @@ object YamlParser extends Matchers[CharReader] {
   def multiline: Matcher[ValueAST] =
     opt(anchor) ~ opt(tag) ~ ("|" | "|-") ~ (nl ~> INDENT ~> affect(_.textUntilDedent()) ~> rep1(
       not(DEDENT) ~> `l-literal-content` <~ nl1) <~ DEDENT) ^^ {
-      case a ~ t ~ "|" ~ l  => PlainAST(a, t, l.mkString("", "\n", "\n"))
-      case a ~ t ~ "|-" ~ l => PlainAST(a, t, l mkString "\n")
+      case a ~ t ~ "|" ~ l => PlainAST(a, t, l.mkString("", "\n", "\n"))
+      case a ~ t ~ _ ~ l   => PlainAST(a, t, l mkString "\n")
     } /*|
       opt(anchor) ~ opt(">" | ">-") ~ (INDENT ~> rep1(textLit <~ nl) <~ DEDENT) ^^ {
         case a ~ Some(">") ~ l => StringAST(a, l mkString ("", " ", "\n"))
@@ -165,7 +165,7 @@ object YamlParser extends Matchers[CharReader] {
         s => ('p', s))) ^^ {
       case a ~ t ~ (('s', s)) => SingleQuotedAST(a, t, s)
       case a ~ t ~ (('d', s)) => DoubleQuotedAST(a, t, s)
-      case a ~ t ~ (('p', s)) => PlainAST(a, t, s)
+      case a ~ t ~ ((_, s))   => PlainAST(a, t, s)
     }
 
   def parseFromString(s: String): ValueAST =

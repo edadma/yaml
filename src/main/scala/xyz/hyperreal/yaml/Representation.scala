@@ -1,10 +1,30 @@
 package xyz.hyperreal.yaml
 
+import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalTime, ZonedDateTime}
 
 import scala.collection.mutable
 
+object Representation {
+  private val FLOAT_REGEX =
+    """([-+]?(?:\d+)?\.\d+(?:[Ee][-+]?\d+)?|[-+]?\d+\.\d+[Ee][-+]?\d+|[-+]?\.inf|\.NaN)""" r
+  private val DEC_REGEX = """([-+]?(?:0|[123456789]\d*))""" r
+  private val HEX_REGEX = """(0x(?:\d|[abcdefABCDEF])+)""" r
+  private val OCT_REGEX = """(0o[01234567]+)""" r
+  private val DATE_REGEX = """(\d+-\d\d-\d\d)""" r
+  private val TIMESTAMP_REGEX =
+    """(\d+-\d\d-\d\d[Tt]\d\d:\d\d:\d\d(?:\.\d*)?(?:Z|[+-]\d\d:\d\d))""" r
+  private val TIME_REGEX = """([012]\d:[012345]\d:[012345]\d(?:\.\d+)?)""" r
+  //  private val SPACED_DATETIME_REGEX =
+  //    """(\d+-\d\d-\d\d\s+\d\d:\d\d:\d\d(?:\.\d*)?)""" r
+  private val SPACED_TIMESTAMP_REGEX =
+    """(\d+-\d\d-\d\d\s+\d\d:\d\d:\d\d(?:\.\d*)?)\s+(Z|[+-]\d(?:\d(?::?\d\d(?::?\d\d)?)?)?)""" r
+  private val SPACED_FORMATTER =
+    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SS]")
+}
+
 class Representation {
+  import Representation._
 
   private val anchors = new mutable.HashMap[String, Any]
 
@@ -19,9 +39,12 @@ class Representation {
     if (stringUnlessTag)
       StringYamlNode(s)
     else
-    s match {
-
-    }
+      s match {
+        case "null"           => NullYamlNode
+        case "true" | "false" => BooleanYamlNode(s)
+        case DEC_REGEX()      => IntYamlNode(s)
+        case _                => StringYamlNode(s)
+      }
   }
 
   def compose(ast: AST): YamlNode =
