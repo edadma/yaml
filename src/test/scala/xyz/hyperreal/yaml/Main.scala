@@ -5,22 +5,7 @@ import xyz.hyperreal.pretty.prettyPrint
 object Main extends App {
 
   val s =
-    """|#
-       |# extract all new car dealers from www.autobuyselldealers.com
-       |#
-       |start: 'http://localhost:8080/'
-       |folder: www.autobuyselldealers.com
-       |init: |
-       |  write( 'initial state' )
-       |paths:
-       |  - path: /listings/dealerships/auto-dealerships-new/*
-       |    key: dealer-page
-       |    from: [start, dealer-page]
-       |    crawl:
-       |    process: |
-       |      write( path, file )
-       |final: |
-       |  write( 'final state' )
+    """|start: www.autobuyselldealers.com #'http://localhost:8080/listings/dealerships/auto-dealerships-new/'
     """.trim.stripMargin
 //    """|- - a: asdf
 //       |    b: sdfg

@@ -31,6 +31,8 @@ abstract class YamlNode extends Dynamic {
 
   def getSeq(key: String): Seq[YamlNode] = map(key).seq
 
+  def getSeqOption(key: String): Option[Seq[YamlNode]] = map get key map (_.seq)
+
   def getBoolean(key: String): Boolean = map(key).boolean
 
   def contains(key: String): Boolean = map contains key
