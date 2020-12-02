@@ -1,6 +1,6 @@
 name := "yaml"
 
-version := "0.1.0-snapshot.11"
+version := "0.1.0-snapshot.12"
 
 scalaVersion := "2.13.4"
 

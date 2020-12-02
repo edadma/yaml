@@ -6,6 +6,14 @@ import xyz.hyperreal.pattern_matcher.Matchers
 
 object YamlParser extends Matchers[CharReader] {
 
+  trait Context
+  case object BlockOut
+  case object BlockIn
+  case object `flow-out` extends Context
+  case object `flow-in` extends Context
+  case object `block-key` extends Context
+  case object `flow-key` extends Context
+
   override def keyword(s: String): Matcher[String] = null
 
   override implicit def str(s: String): Matcher[String] =
@@ -40,16 +48,28 @@ object YamlParser extends Matchers[CharReader] {
 
   val /*[34]*/ `ns-char`: Set[Char] = `nb-char` -- `s-white`
 
-  val /*[126]*/ `ns-plain-first`: Set[Char] = `ns-char` -- `c-indicator` // todo: incomplete
+  def /*[126]*/ `ns-plain-first`(c: Context): Matcher[Char] =
+    ((`ns-char` -- `c-indicator`): Matcher[Char]) | (ch('?') | ':' | '-') <~ guard(`ns-plain-safe`(c))
 
+  def /*[127]*/ `ns-plain-safe`(c: Context): Set[Char] =
+    c match {
+      case `flow-out`  => `ns-plain-safe-out`
+      case `flow-in`   => `ns-plain-safe-in`
+      case `block-key` => `ns-plain-safe-out`
+      case `flow-key`  => `ns-plain-safe-in`
+    }
+
+  val /*[128]*/ `ns-plain-safe-out`: Set[Char] = `ns-char`
   val /*[129]*/ `ns-plain-safe-in`: Set[Char] = `ns-char` -- `c-flow-indicator`
 
-  def /*[130]*/ `ns-plain-char`: Matcher[Char] = elem(`ns-plain-safe-in` - ':' - '#') // todo: incomplete
+  def /*[130]*/ `ns-plain-char`(c: Context): Matcher[Char] =
+    elem(`ns-plain-safe`(c) - ':' - '#') | ':' <~ guard(`ns-plain-safe`(c)) // todo: still incomplete
 
-  def /*[132]*/ `nb-ns-plain-in-line`: Matcher[List[List[Char] ~ Char]] =
-    (`s-white`.* ~ `ns-plain-char`) *
+  def /*[132]*/ `nb-ns-plain-in-line`(c: Context): Matcher[List[List[Char] ~ Char]] =
+    (`s-white`.* ~ `ns-plain-char`(c)) *
 
-  def /*[133]*/ `ns-plain-one-line`: Matcher[String] = string(`ns-plain-first` ~ `nb-ns-plain-in-line`)
+  def /*[133]*/ `ns-plain-one-line`(c: Context): Matcher[String] =
+    string(`ns-plain-first`(c) ~ `nb-ns-plain-in-line`(c))
 
   def anchor: Matcher[String] = '&' ~> string(rep1(letterOrDigit))
 
@@ -64,7 +84,7 @@ object YamlParser extends Matchers[CharReader] {
   def documentValue: Matcher[ValueAST] =
     blockPairs ^^ (p => MapAST(None, None, p)) |
       blockListElements ^^ (l => SeqAST(None, None, l)) |
-      flowValue |
+      flowValue(`flow-in`) |
       multiline
 
   def blockContainer: Matcher[ContainerAST] = blockMap | blockList
@@ -77,7 +97,7 @@ object YamlParser extends Matchers[CharReader] {
   def blockPairs: Matcher[List[(ValueAST, ValueAST)]] = rep1(blockPair)
 
   def blockPair: Matcher[(ValueAST, ValueAST)] =
-    flowValue ~ ":" ~ blockValue ^^ {
+    flowValue(`flow-out`) ~ ":" ~ blockValue ^^ {
       case k ~ _ ~ v => (k, v)
     }
   /*|
@@ -114,7 +134,7 @@ object YamlParser extends Matchers[CharReader] {
       blockPair ^^ (p => MapAST(None, None, List(p))) |
       blockValue
 
-  def blockValue: Matcher[ValueAST] = blockContainer | optNull(flowValue) <~ nl | multiline
+  def blockValue: Matcher[ValueAST] = blockContainer | optNull(flowValue(`flow-out`)) <~ nl | multiline
 
   // todo: 173 incomplete
   def /*[173]*/ `l-literal-content`: Matcher[String] = string(elem(`nb-char`) *)
@@ -144,24 +164,24 @@ object YamlParser extends Matchers[CharReader] {
     }
 
   def flowPair: Matcher[(ValueAST, ValueAST)] =
-    flowValue ~ opt(":" ~> optNull(flowValue)) ^^ {
+    flowValue(`flow-in`) ~ opt(":" ~> optNull(flowValue(`flow-in`))) ^^ {
       case k ~ None    => (k, EmptyAST)
       case k ~ Some(v) => (k, v)
     }
 
   def flowList: Matcher[ContainerAST] =
-    opt(anchor) ~ opt(tag) ~ ('[' ~> repsep(optNull(flowValue), ",") <~ ']') ^^ {
+    opt(anchor) ~ opt(tag) ~ ('[' ~> repsep(optNull(flowValue(`flow-in`)), ",") <~ ']') ^^ {
       case a ~ t ~ l => SeqAST(a, t, l)
     }
 
   def optNull[T <: ValueAST](m: Matcher[T]): Matcher[ValueAST] = opt(m) ^^ orNull
 
-  def flowValue: Matcher[ValueAST] = flowContainer | primitive
+  def flowValue(c: Context): Matcher[ValueAST] = flowContainer | primitive(c)
 
-  def flowPlainText: Matcher[String] = `ns-plain-one-line`
+  def flowPlainText(c: Context): Matcher[String] = `ns-plain-one-line`(c)
 
-  def primitive: Matcher[ValueAST] =
-    opt(anchor) ~ opt(tag) ~ (singleStringLit ^^ (s => ('s', s)) | doubleStringLit ^^ (s => ('d', s)) | flowPlainText ^^ (
+  def primitive(c: Context): Matcher[ValueAST] =
+    opt(anchor) ~ opt(tag) ~ (singleStringLit ^^ (s => ('s', s)) | doubleStringLit ^^ (s => ('d', s)) | flowPlainText(c) ^^ (
         s => ('p', s))) ^^ {
       case a ~ t ~ (('s', s)) => SingleQuotedAST(a, t, s)
       case a ~ t ~ (('d', s)) => DoubleQuotedAST(a, t, s)
