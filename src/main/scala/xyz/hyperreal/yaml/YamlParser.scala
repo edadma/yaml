@@ -99,19 +99,18 @@ object YamlParser extends Matchers[CharReader] {
   def blockPair: Matcher[(ValueAST, ValueAST)] =
     flowValue(`flow-out`) ~ ":" ~ blockValue ^^ {
       case k ~ _ ~ v => (k, v)
-    }
-  /*|
-      complexKey ~ opt(nl ~ ":" ~ opt(value)) ^^ {
-        case k ~ (None | Some(_ ~ _ ~ None)) => (k, NullAST)
+    } |
+      complexKey ~ opt(nl ~ ":" ~ opt(blockValue)) ^^ {
+        case k ~ (None | Some(_ ~ _ ~ None)) => (k, EmptyAST)
         case k ~ Some(_ ~ _ ~ Some(v))       => (k, v)
-      }*/
+      }
 
-//  def complexKey: Matcher[ValueAST] =
-//    "?" ~> "-" ~> opt(listValue) ~ opt(INDENT ~> listValues <~ DEDENT) ^^ {
-//      case v ~ None     => SeqAST(None, List(ornull(v)))
-//      case v ~ Some(vs) => SeqAST(None, ornull(v) :: vs)
-//    } |
-//      "?" ~> value
+  def complexKey: Matcher[ValueAST] =
+    "?" ~> blockListElement ~ opt(INDENT ~> blockListElements <~ DEDENT) ^^ {
+      case v ~ None     => SeqAST(None, None, List(v))
+      case v ~ Some(vs) => SeqAST(None, None, v :: vs)
+    } |
+      "?" ~> blockValue
 
   def blockList: Matcher[SeqAST] =
     opt(anchor) ~ opt(tag) ~ (nl ~> INDENT ~> blockListElements <~ DEDENT) ^^ {
@@ -144,11 +143,11 @@ object YamlParser extends Matchers[CharReader] {
       not(DEDENT) ~> `l-literal-content` <~ nl1) <~ DEDENT) ^^ {
       case a ~ t ~ "|" ~ l => PlainAST(a, t, l.mkString("", "\n", "\n"))
       case a ~ t ~ _ ~ l   => PlainAST(a, t, l mkString "\n")
-    } /*|
-      opt(anchor) ~ opt(">" | ">-") ~ (INDENT ~> rep1(textLit <~ nl) <~ DEDENT) ^^ {
-        case a ~ Some(">") ~ l => StringAST(a, l mkString ("", " ", "\n"))
-        case a ~ _ ~ l         => StringAST(a, l mkString " ")
-      }*/
+    } |
+      opt(anchor) ~ opt(tag) ~ opt(">" | ">-") ~ (INDENT ~> rep1(affect(_.textUntilDedent()) <~ nl) <~ DEDENT) ^^ {
+        case a ~ t ~ Some(">") ~ l => PlainAST(a, t, l mkString ("", " ", "\n"))
+        case a ~ t ~ _ ~ l         => PlainAST(a, t, l mkString " ")
+      }
 
   def orNull(a: Option[ValueAST]): ValueAST =
     a match {
