@@ -188,7 +188,7 @@ object YamlParser extends Matchers[CharReader] {
     }
 
   def parseFromString(s: String): ValueAST =
-    parseFromCharReader(CharReader.fromString(s, indentation = Some((Some("#"), None))))
+    parseFromCharReader(CharReader.fromString(s, indentation = Some(("#", "", ""))))
 
   def parseFromCharReader(r: CharReader): ValueAST =
     input(r) match {

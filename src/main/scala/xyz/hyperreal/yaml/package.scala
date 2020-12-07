@@ -6,11 +6,7 @@ package object yaml {
 
   def readFromString(s: String): YamlNode =
     new Representation()
-      .compose(YamlParser.parseFromCharReader(CharReader.fromString(s, indentation = Some((Some("#"), None)))))
-
-  def readFromSource(s: io.Source): YamlNode =
-    new Representation()
-      .compose(YamlParser.parseFromCharReader(CharReader.fromSource(s, indentation = Some((Some("#"), None)))))
+      .compose(YamlParser.parseFromString(s))
 
   private[yaml] def problem(pos: CharReader, error: String): Nothing =
     if (pos eq null)

@@ -1,6 +1,6 @@
 name := "yaml"
 
-version := "0.1.0-snapshot.12"
+version := "0.1.0-snapshot.13"
 
 scalaVersion := "2.13.4"
 
@@ -55,7 +55,7 @@ libraryDependencies ++= {
 //}
 
 libraryDependencies ++= Seq(
-  "xyz.hyperreal" %% "pattern-matcher" % "0.3.11",
+  "xyz.hyperreal" %% "pattern-matcher" % "0.3.14",
   "xyz.hyperreal" %% "pretty" % "0.2" % "test"
 )
 
