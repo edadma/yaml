@@ -1,75 +1,32 @@
 name := "yaml"
 
-version := "0.1.0-snapshot.13"
+version := "0.1.0"
 
-scalaVersion := "2.13.4"
+scalaVersion := "2.13.6"
 
 scalacOptions ++= Seq( "-deprecation", "-feature", "-unchecked", "-language:postfixOps", "-language:implicitConversions", "-language:existentials", "-language:dynamics" )
 
-organization := "xyz.hyperreal"
+organization := "io.github.edadma"
 
-Global / onChangedBuildSource := ReloadOnSourceChanges
+githubOwner := "edadma"
 
-resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/releases/"
+githubRepository := name.value
 
-resolvers += "Hyperreal Repository" at "https://dl.bintray.com/edadma/maven"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test"
 
 libraryDependencies ++= Seq(
-	"org.scalatest" %% "scalatest" % "3.1.1" % "test",
-	"org.scalacheck" %% "scalacheck" % "1.14.1" % "test"
+  "io.github.edadma" %% "pattern-matcher" % "0.1.0"
 )
 
 libraryDependencies ++= Seq(
-//	"org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
-//	"org.scala-lang.modules" %% "scala-xml" % "1.2.0"
-//	"org.scala-lang.modules" %% "scala-swing" % "2.1.1"
+  "com.lihaoyi" %% "pprint" % "0.6.6"
 )
 
-//libraryDependencies ++= Seq(
-//  "com.typesafe" % "config" % "1.3.4"
-//)
-
-//libraryDependencies ++= Seq(
-//  "jline" % "jline" % "2.14.6"
-//)
-
-libraryDependencies ++= {
-	val akkaV = "2.5.25"
-	Seq(
-//		"com.typesafe.akka" %% "akka-actor"    % akkaV
-//		"com.typesafe.akka" %% "akka-remote"   % akkaV,
-//		"com.typesafe.akka" %% "akka-testkit"  % akkaV    % "test",
-//		"org.specs2"        %% "specs2-core"   % "2.3.11" % "test"
-	)
-}
-
-//libraryDependencies ++= {
-//	val akka_http = "10.1.10"
-//	Seq(
-//		"com.typesafe.akka" %% "akka-http-core"       % akka_http,
-//		"com.typesafe.akka" %% "akka-http"            % akka_http,
-//		"com.typesafe.akka" %% "akka-http-testkit"    % akka_http,
-//		"com.typesafe.akka" %% "akka-http-spray-json" % akka_http,
-//		"com.typesafe.akka" %% "akka-http-jackson"    % akka_http
-//	)
-//}
-
-libraryDependencies ++= Seq(
-  "xyz.hyperreal" %% "pattern-matcher" % "0.3.14",
-  "xyz.hyperreal" %% "pretty" % "0.2" % "test"
-)
-
-coverageExcludedPackages := ".*Main"
-
-mainClass in (Compile, run) := Some( "xyz.hyperreal." + name.value.replace('-', '_') + ".Main" )
-
-mainClass in assembly := Some( "xyz.hyperreal." + name.value.replace('-', '_') + ".Main" )
-
-assemblyJarName in assembly := name.value + "-" + version.value + ".jar"
+mainClass := Some(s"${organization.value}.${name.value}.Main")
 
 publishMavenStyle := true
 
-publishArtifact in Test := false
+Test / publishArtifact := false
 
 pomIncludeRepository := { _ => false }
 

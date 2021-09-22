@@ -1,6 +1,6 @@
-package xyz.hyperreal.yaml
+package io.github.edadma.yaml
 
-import xyz.hyperreal.pretty.prettyPrint
+import pprint._
 
 object Main extends App {
 
@@ -28,6 +28,6 @@ object Main extends App {
 //    "[asdf, 2, 3]"
   val ast = readFromString(s)
 
-  println(prettyPrint(ast))
+  pprintln(ast)
 
 }

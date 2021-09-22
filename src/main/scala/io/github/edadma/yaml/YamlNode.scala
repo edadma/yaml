@@ -1,4 +1,4 @@
-package xyz.hyperreal.yaml
+package io.github.edadma.yaml
 
 abstract class YamlNode extends Dynamic {
   val tag: YamlTag

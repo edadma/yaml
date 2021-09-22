@@ -1,6 +1,6 @@
-package xyz.hyperreal.yaml
+package io.github.edadma.yaml
 
-import xyz.hyperreal.char_reader.CharReader
+import io.github.edadma.char_reader.CharReader
 
 trait AST
 

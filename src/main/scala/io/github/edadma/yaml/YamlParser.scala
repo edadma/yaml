@@ -1,8 +1,8 @@
-package xyz.hyperreal.yaml
+package io.github.edadma.yaml
 
-import xyz.hyperreal.char_reader.CharReader
-import xyz.hyperreal.char_reader.CharReader.{DEDENT, INDENT}
-import xyz.hyperreal.pattern_matcher.Matchers
+import io.github.edadma.char_reader.CharReader
+import io.github.edadma.char_reader.CharReader.{DEDENT, INDENT}
+import io.github.edadma.pattern_matcher.Matchers
 
 object YamlParser extends Matchers[CharReader] {
 

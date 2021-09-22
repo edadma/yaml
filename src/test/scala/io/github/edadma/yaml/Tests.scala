@@ -1,4 +1,4 @@
-package xyz.hyperreal.yaml
+package io.github.edadma.yaml
 
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers

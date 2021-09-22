@@ -1,4 +1,4 @@
-package xyz.hyperreal.yaml
+package io.github.edadma.yaml
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalTime, ZonedDateTime}
