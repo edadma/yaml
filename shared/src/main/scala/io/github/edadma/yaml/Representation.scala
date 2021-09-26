@@ -1,7 +1,7 @@
 package io.github.edadma.yaml
 
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, LocalTime, ZonedDateTime}
+//import java.time.format.DateTimeFormatter
+//import java.time.{LocalDate, LocalTime, ZonedDateTime}
 
 import scala.collection.mutable
 
@@ -19,8 +19,8 @@ object Representation {
   //    """(\d+-\d\d-\d\d\s+\d\d:\d\d:\d\d(?:\.\d*)?)""" r
   private val SPACED_TIMESTAMP_REGEX =
     """(\d+-\d\d-\d\d\s+\d\d:\d\d:\d\d(?:\.\d*)?)\s+(Z|[+-]\d(?:\d(?::?\d\d(?::?\d\d)?)?)?)""" r
-  private val SPACED_FORMATTER =
-    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SS]")
+//  private val SPACED_FORMATTER =
+//    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SS]")
 }
 
 class Representation {
