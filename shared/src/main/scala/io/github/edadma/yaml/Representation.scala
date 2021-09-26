@@ -4,6 +4,7 @@ package io.github.edadma.yaml
 //import java.time.{LocalDate, LocalTime, ZonedDateTime}
 
 import scala.collection.mutable
+import scala.language.postfixOps
 
 object Representation {
   private val FLOAT_REGEX =
@@ -42,7 +43,8 @@ class Representation {
       s match {
         case "null"           => NullYamlNode
         case "true" | "false" => BooleanYamlNode(s)
-        case DEC_REGEX()      => IntYamlNode(s)
+        case FLOAT_REGEX(_)   => FloatYamlNode(s)
+        case DEC_REGEX(_)     => IntYamlNode(s)
         case _                => StringYamlNode(s)
       }
   }

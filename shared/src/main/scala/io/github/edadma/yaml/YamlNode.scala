@@ -1,5 +1,7 @@
 package io.github.edadma.yaml
 
+import scala.language.dynamics
+
 abstract class YamlNode extends Dynamic {
   val tag: YamlTag
 
@@ -94,6 +96,8 @@ case object NullYamlNode extends ScalarYamlNode(NullYamlTag) { val scalar: Strin
 case class BooleanYamlNode(scalar: String) extends ScalarYamlNode(BooleanYamlTag)
 
 case class IntYamlNode(scalar: String) extends ScalarYamlNode(IntYamlTag)
+
+case class FloatYamlNode(scalar: String) extends ScalarYamlNode(FloatYamlTag)
 
 case object SeqYamlTag extends YamlTag("seq") {
   type Rep = SeqYamlNode

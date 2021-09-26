@@ -4,6 +4,8 @@ import io.github.edadma.char_reader.CharReader
 import io.github.edadma.char_reader.CharReader.{DEDENT, INDENT}
 import io.github.edadma.pattern_matcher.Matchers
 
+import scala.language.implicitConversions
+
 object YamlParser extends Matchers[CharReader] {
 
   trait Context
