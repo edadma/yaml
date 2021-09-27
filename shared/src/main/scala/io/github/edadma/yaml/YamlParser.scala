@@ -4,16 +4,22 @@ import io.github.edadma.char_reader.CharReader
 import io.github.edadma.char_reader.CharReader.{DEDENT, INDENT}
 import io.github.edadma.pattern_matcher.Matchers
 
-import scala.language.implicitConversions
+import scala.language.{implicitConversions, postfixOps}
 
 object YamlParser extends Matchers[CharReader] {
 
   trait Context
+
   case object BlockOut
+
   case object BlockIn
+
   case object `flow-out` extends Context
+
   case object `flow-in` extends Context
+
   case object `block-key` extends Context
+
   case object `flow-key` extends Context
 
   override def keyword(s: String): Matcher[String] = null
@@ -171,8 +177,9 @@ object YamlParser extends Matchers[CharReader] {
     }
 
   def flowList: Matcher[ContainerAST] =
-    opt(anchor) ~ opt(tag) ~ ('[' ~> repsep(optNull(flowValue(`flow-in`)), ",") <~ ']') ^^ {
-      case a ~ t ~ l => SeqAST(a, t, l)
+    opt(anchor) ~ opt(tag) ~ ('[' <~ ']' | '[' ~> repsep(optNull(flowValue(`flow-in`)), ",") <~ ']') ^^ {
+      case a ~ t ~ '['                 => SeqAST(a, t, Nil)
+      case a ~ t ~ (l: List[ValueAST]) => SeqAST(a, t, l)
     }
 
   def optNull[T <: ValueAST](m: Matcher[T]): Matcher[ValueAST] = opt(m) ^^ orNull

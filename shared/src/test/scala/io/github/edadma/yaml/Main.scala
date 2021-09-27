@@ -5,9 +5,7 @@ import pprint._
 object Main extends App {
 
   val s =
-    """|a: 123
-       |b: 3.4
-       |c: 6.02214076e23
+    """|a: {}
        |""".trim.stripMargin
 //    """|- - a: asdf
 //       |    b: sdfg

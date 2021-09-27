@@ -4,7 +4,7 @@ ThisBuild / versionScheme := Some("semver-spec")
 lazy val yaml = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(".")).
   settings(
     name := "yaml",
-    version := "0.1.5",
+    version := "0.1.6",
     scalaVersion := "2.13.6",
     scalacOptions ++=
       Seq(
