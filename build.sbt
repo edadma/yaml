@@ -4,7 +4,7 @@ ThisBuild / versionScheme := Some("semver-spec")
 lazy val yaml = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(".")).
   settings(
     name := "yaml",
-    version := "0.1.8",
+    version := "0.1.9",
     scalaVersion := "2.13.6",
     scalacOptions ++=
       Seq(
@@ -17,7 +17,7 @@ lazy val yaml = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(".
     githubRepository := name.value,
     mainClass := Some(s"${organization.value}.${name.value}.Main"),
     libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.9" % "test",
-    libraryDependencies += "io.github.edadma" %%% "pattern-matcher" % "0.1.4",
+    libraryDependencies += "io.github.edadma" %%% "pattern-matcher" % "0.1.5",
     libraryDependencies += "com.lihaoyi" %%% "pprint" % "0.6.6",
       publishMavenStyle := true,
     Test / publishArtifact := false,
