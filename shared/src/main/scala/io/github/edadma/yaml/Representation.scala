@@ -14,17 +14,18 @@ object Representation {
   private val OCT_REGEX = """(0o[01234567]+)""" r
   private val DATE_REGEX = """(\d+-\d\d-\d\d)""" r
   private val TIMESTAMP_REGEX =
-    """(\d+-\d\d-\d\d[Tt]\d\d:\d\d:\d\d(?:\.\d*)?(?:Z|[+-]\d\d:\d\d))""" r
+    """(\d\d\d\d-\d\d-\d\d|\d\d\d\d-\d\d?-\d\d?(?:[Tt]|[ \t]+)\d\d?:\d\d:\d\d(?:\.\d*)?(?:[ \t]*)(?:Z|[-+]\d\d?(?::\d\d)?)?)""".r
   private val TIME_REGEX = """([012]\d:[012345]\d:[012345]\d(?:\.\d+)?)""" r
   //  private val SPACED_DATETIME_REGEX =
   //    """(\d+-\d\d-\d\d\s+\d\d:\d\d:\d\d(?:\.\d*)?)""" r
   private val SPACED_TIMESTAMP_REGEX =
     """(\d+-\d\d-\d\d\s+\d\d:\d\d:\d\d(?:\.\d*)?)\s+(Z|[+-]\d(?:\d(?::?\d\d(?::?\d\d)?)?)?)""" r
-//  private val SPACED_FORMATTER =
-//    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SS]")
+  //  private val SPACED_FORMATTER =
+  //    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SS]")
 }
 
 class Representation {
+
   import Representation._
 
   private val anchors = new mutable.HashMap[String, Any]
@@ -41,27 +42,28 @@ class Representation {
       StringYamlNode(s)
     else
       s match {
-        case "null"           => NullYamlNode
-        case "true" | "false" => BooleanYamlNode(s)
-        case FLOAT_REGEX(_)   => FloatYamlNode(s)
-        case DEC_REGEX(_)     => IntYamlNode(s)
-        case _                => StringYamlNode(s)
+        case "null"             => NullYamlNode
+        case "true" | "false"   => BooleanYamlNode(s)
+        case FLOAT_REGEX(_)     => FloatYamlNode(s)
+        case DEC_REGEX(_)       => IntYamlNode(s)
+        case TIMESTAMP_REGEX(_) => TimestampYamlNode(s)
+        case _                  => StringYamlNode(s)
       }
   }
 
   def compose(ast: AST): YamlNode =
     ast match {
-//      case SourceAST(documents) =>
-//        for (d <- documents)
-//          yield {
-//            reset()
-//            compose(d)
-//          }
-//      case AliasAST(pos, name) =>
-//        anchors get name match {
-//          case None    => problem(pos, s"anchor not found: $name")
-//          case Some(v) => v
-//        }
+      //      case SourceAST(documents) =>
+      //        for (d <- documents)
+      //          yield {
+      //            reset()
+      //            compose(d)
+      //          }
+      //      case AliasAST(pos, name) =>
+      //        anchors get name match {
+      //          case None    => problem(pos, s"anchor not found: $name")
+      //          case Some(v) => v
+      //        }
       case EmptyAST                        => NullYamlNode
       case PlainAST(anchor, tag, s)        => scalarNode(anchor, tag, s, stringUnlessTag = false)
       case SingleQuotedAST(anchor, tag, s) => scalarNode(anchor, tag, s, stringUnlessTag = true)

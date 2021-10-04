@@ -97,6 +97,8 @@ case class BooleanYamlNode(scalar: String) extends ScalarYamlNode(BooleanYamlTag
 
 case class IntYamlNode(scalar: String) extends ScalarYamlNode(IntYamlTag)
 
+case class TimestampYamlNode(scalar: String) extends ScalarYamlNode(IntYamlTag)
+
 case class FloatYamlNode(scalar: String) extends ScalarYamlNode(FloatYamlTag)
 
 case object SeqYamlTag extends YamlTag("seq") {
