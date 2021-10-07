@@ -25,7 +25,7 @@ object Main extends App {
 //       |- zxcv
 //       |""".stripMargin
 //    "[asdf, 2, 3]"
-  val ast = readFromString(s)
+  val ast = readFromString("")
 
   pprintln(ast)
 

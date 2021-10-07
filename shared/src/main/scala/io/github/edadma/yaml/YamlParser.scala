@@ -83,7 +83,8 @@ object YamlParser extends Matchers[CharReader] {
 
   def tag: YamlParser.Matcher[String] = '!' ~> '!' ~> string(rep1(letter))
 
-  def input: Matcher[ValueAST] = matchall(repu(nl) ~> documentValue)
+  def input: Matcher[ValueAST] =
+    matchall(whitespace ~ eoi ^^^ EmptyAST | repu(nl) ~> documentValue)
 
   def nl: Matcher[_] = whitespace ~ (eoi | guard(DEDENT) | rep1('\n'))
 
