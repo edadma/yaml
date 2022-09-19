@@ -145,7 +145,7 @@ object YamlParser extends Matchers[CharReader] {
   def blockValue: Matcher[ValueAST] = blockContainer | optNull(flowValue(`flow-out`)) <~ nl | multiline
 
   // todo: 173 incomplete
-  def /*[173]*/ `l-literal-content`: Matcher[String] = string(elem(`nb-char`) *)
+  def /*[173]*/ `l-literal-content`: Matcher[String] = string(elem(`nb-char`).*)
 
   def multiline: Matcher[ValueAST] =
     opt(anchor) ~ opt(tag) ~ ("|" | "|-") ~ (nl ~> INDENT ~> affect(_.textUntilDedent()) ~> rep1(
