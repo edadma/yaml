@@ -1,6 +1,6 @@
 package io.github.edadma.yaml
 
-import scala.language.dynamics
+import scala.language.{dynamics, postfixOps}
 
 abstract class YamlNode extends Dynamic {
   val tag: YamlTag

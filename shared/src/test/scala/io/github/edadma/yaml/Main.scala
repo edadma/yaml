@@ -2,22 +2,21 @@ package io.github.edadma.yaml
 
 import pprint._
 
-object Main extends App {
-
+@main def run(): Unit =
   val s =
-    """|a: {}
-       |""".trim.stripMargin
+//    """|a: {}
+//       |""".trim.stripMargin
 //    """|- - a: asdf
 //       |    b: sdfg
 //       |  - bnm
 //    """.trim.stripMargin
-//    """|a:
-//       | b:
-//       |  - 1
-//       |  -
-//       |   c:
-//       |   d: 2
-//       |""".stripMargin
+    """|a:
+       | b:
+       |  - 1
+       |  -
+       |   c:
+       |   d: 2
+       |""".stripMargin
 //    """|-
 //       | - 1
 //       | -
@@ -25,8 +24,6 @@ object Main extends App {
 //       |- zxcv
 //       |""".stripMargin
 //    "[asdf, 2, 3]"
-  val ast = readFromString("")
+  val ast = readFromString(s)
 
   pprintln(ast)
-
-}
