@@ -24,6 +24,6 @@ import pprint._
 //       |- zxcv
 //       |""".stripMargin
 //    "[asdf, 2, 3]"
-  val ast = readFromString(s)
+  val node = readFromString(s)
 
-  pprintln(ast)
+  pprintln(node.construct)
