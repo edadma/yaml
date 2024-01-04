@@ -7,7 +7,7 @@ lazy val yaml = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("."))
   .settings(
     name := "yaml",
-    version := "0.1.12",
+    version := "0.1.13",
     scalaVersion := "3.3.1",
     scalacOptions ++=
       Seq(
