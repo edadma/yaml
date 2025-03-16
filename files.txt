@@ -1,0 +1,19 @@
+; yaml library code
+
+# library sources
+./shared/src/main/scala/io/github/edadma/yaml
+AST.scala
+package.scala
+Representation.scala
+YamlNode.scala
+YamlParser.scala
+
+# test sources
+./shared/src/test/scala/io/github/edadma/yaml
+Main.scala
+
+# build files
+./
+build.sbt
+./project
+plugins.sbt
