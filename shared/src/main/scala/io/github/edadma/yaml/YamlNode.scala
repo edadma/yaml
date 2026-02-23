@@ -103,7 +103,7 @@ case class FloatYamlNode(scalar: String) extends ScalarYamlNode(FloatYamlTag)
 
 case object SeqYamlTag extends YamlTag("seq") {
   type Rep = SeqYamlNode
-  type Native = List[_]
+  type Native = List[?]
 
   def construct(node: SeqYamlNode): Native = node.elems map (_.construct)
 }
@@ -114,7 +114,7 @@ case class SeqYamlNode(elems: List[YamlNode]) extends YamlNode {
 
 case object MapYamlTag extends YamlTag("map") {
   type Rep = MapYamlNode
-  type Native = Map[_, _]
+  type Native = Map[?, ?]
 
   def construct(node: MapYamlNode): Native = node.entries map { case (k, v) => (k.construct, v.construct) } toMap
 }

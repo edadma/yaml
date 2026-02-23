@@ -29,11 +29,11 @@ object YamlParser extends Matchers[CharReader] {
 
   override def space: Matcher[Char] = anyOf(' ', '\t')
 
-  override def lineComment: Matcher[_] = '#'
+  override def lineComment: Matcher[?] = '#'
 
-  override def blockCommentStart: Matcher[_] = not(pos)
+  override def blockCommentStart: Matcher[?] = not(pos)
 
-  override def blockCommentEnd: Matcher[_] = not(pos)
+  override def blockCommentEnd: Matcher[?] = not(pos)
 
   def s(s: String): Matcher[String] = super.str(s)
 
@@ -86,9 +86,9 @@ object YamlParser extends Matchers[CharReader] {
   def input: Matcher[ValueAST] =
     matchall(whitespace ~ eoi ^^^ EmptyAST | repu(nl) ~> documentValue)
 
-  def nl: Matcher[_] = whitespace ~ (eoi | guard(DEDENT) | rep1('\n'))
+  def nl: Matcher[?] = whitespace ~ (eoi | guard(DEDENT) | rep1('\n'))
 
-  def nl1: Matcher[_] = eoi | guard(DEDENT) | '\n'
+  def nl1: Matcher[?] = eoi | guard(DEDENT) | '\n'
 
   def documentValue: Matcher[ValueAST] =
     blockPairs ^^ (p => MapAST(None, None, p)) |
@@ -179,7 +179,7 @@ object YamlParser extends Matchers[CharReader] {
 
   def flowList: Matcher[ContainerAST] =
     opt(anchor) ~ opt(tag) ~ ('[' <~ ']' | '[' ~> repsep(optNull(flowValue(`flow-in`)), ",") <~ ']') ^^ {
-      case a ~ t ~ '['                 => SeqAST(a, t, Nil)
+      case a ~ t ~ (_: Char)           => SeqAST(a, t, Nil)
       case a ~ t ~ (l: List[ValueAST]) => SeqAST(a, t, l)
     }
 
