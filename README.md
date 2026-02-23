@@ -11,14 +11,14 @@ A lightweight YAML parsing library for Scala that supports JVM, JavaScript, and 
 
 ## Status
 
-This library is currently in early development (v0.0.1). While some features are not fully implemented according to the YAML specification, the core functionality is working and suitable for many use cases.
+This library is currently in early development. While some features are not fully implemented according to the YAML specification, the core functionality is working and suitable for many use cases.
 
 ## Installation
 
 Add the following dependency to your `build.sbt` file:
 
 ```scala
-libraryDependencies += "io.github.edadma" %%% "yaml" % "0.0.1"
+libraryDependencies += "io.github.edadma" %%% "yaml" % "0.0.2"
 ```
 
 ## Prerequisites
